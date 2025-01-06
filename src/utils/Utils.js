@@ -22,5 +22,6 @@ const arrayOR = (a, b) => {
 
 export {
     arrayShuffle,
+    arrayOR
 };
 
