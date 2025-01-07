@@ -6,6 +6,7 @@ import Card from "./Card.jsx";
 
 let timer = null;
 let audio = null;
+const defaultTimeout = 2; // 2 seconds
 
 function App() {
     const [words, setWords] = useState([]);
@@ -84,11 +85,14 @@ function App() {
                 timer = null;
                 return;
             }
+
+            let timeout = localStorage.getItem("timeout") || defaultTimeout;
+
             timer = setTimeout(() => {
                 let a = new Array(tileState.length).fill(false);
                 setTileState(a);
                 timer = null;
-            }, 2000);
+            }, timeout * 1000);
         }
     };
 
