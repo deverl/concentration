@@ -15,9 +15,7 @@ function Card({ word = "", index = 0, turned = false, timeout = 2, onClick = () 
     if (turned) {
         return (
             <div className="card" id={title} onClick={handleClick}>
-                <div className="card-body">
-                    <h5 className="card-title">{word}</h5>
-                </div>
+                {word}
             </div>
         );
     }
