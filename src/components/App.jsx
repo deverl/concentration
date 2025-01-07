@@ -16,7 +16,7 @@ function App() {
     const [cols, setCols] = useState(2);
 
     useEffect(() => {
-        axios.get("/public/words.txt").then(response => {
+        axios.get("/words.txt").then(response => {
             let wordArray = response.data.split("\n");
 
             wordArray = [...wordArray, ...wordArray];
