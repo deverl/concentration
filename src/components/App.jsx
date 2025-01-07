@@ -5,6 +5,7 @@ import "./App.css";
 import Card from "./Card.jsx";
 
 let timer = null;
+let audio = null;
 
 function App() {
     const [words, setWords] = useState([]);
@@ -20,7 +21,8 @@ function App() {
             wordArray = [...wordArray, ...wordArray];
 
             const numWords = wordArray.length;
-            let numCols = localStorage.getItem('columns') || Math.ceil(Math.sqrt(numWords)); //  + 1;
+            let numCols =
+                localStorage.getItem("columns") || Math.ceil(Math.sqrt(numWords)); //  + 1;
             const numRows = numWords / numCols;
 
             wordArray = arrayShuffle(wordArray);
@@ -34,8 +36,22 @@ function App() {
             setWords(wordArray);
             setsolved(solvedArray);
             setTileState(theTileState);
+
+            audio = document.getElementById("tada_audio");
         });
     }, []);
+
+    const playTada = () => {
+        const shouldPlayString = localStorage.getItem("sound");
+        if (
+            shouldPlayString === null ||
+            shouldPlayString === "1" ||
+            shouldPlayString === "true" ||
+            shouldPlayString === "on"
+        ) {
+            audio.play();
+        }
+    };
 
     const getSelectedWords = newTileState => {
         const selected = [];
@@ -57,8 +73,7 @@ function App() {
         if (newTileState.filter(Boolean).length === 2) {
             const selectedWords = getSelectedWords(newTileState);
             if (selectedWords[0].word === selectedWords[1].word) {
-                const audio = document.getElementById("tada_audio");
-                audio.play();
+                playTada();
                 const solvedArray = [...solved];
                 solvedArray[selectedWords[0].index] = true;
                 solvedArray[selectedWords[1].index] = true;
