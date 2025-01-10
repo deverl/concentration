@@ -17,4 +17,45 @@ const arrayOR = (a, b) => {
     return a.map((value, index) => value || b[index]);
 };
 
-export { arrayShuffle, arrayOR };
+const isCheckboxChecked = checkboxId => {
+    let checkbox = document.getElementById(checkboxId);
+    return checkbox.checked;
+};
+
+const isTruthy = s => {
+    if (
+        s === true ||
+        s === 1 ||
+        s === "1" ||
+        s === "true" ||
+        s === "TRUE" ||
+        s === "on" ||
+        s === "ON" ||
+        s === "yes" ||
+        s === "YES" ||
+        s === "y" ||
+        s === "Y" ||
+        s === "enable" ||
+        s === "ENABLE" ||
+        s === "enabled" ||
+        s === "ENABLED" ||
+        s === "active" ||
+        s === "ACTIVE" ||
+        s === "sure" ||
+        s === "SURE" ||
+        s === "ok" ||
+        s === "OK"
+    ) {
+        return true;
+    }
+};
+
+const areSoundsEnabled = () => {
+    const s = localStorage.getItem("sound");
+    if (s === null || isTruthy(s)){
+        return true;
+    }
+    return false;
+};
+
+export { arrayShuffle, arrayOR, isCheckboxChecked, isTruthy, areSoundsEnabled };

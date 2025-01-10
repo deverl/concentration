@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { arrayShuffle } from "../utils/Utils.js";
+import { arrayShuffle, areSoundsEnabled } from "../utils/Utils.js";
 import "./App.css";
 import Card from "./Card.jsx";
+import SettingsDlg from "./SettingsDlg.jsx";
 
 let timer = null;
 let audio = null;
@@ -14,6 +15,7 @@ function App() {
     const [tileState, setTileState] = useState([]);
     const [rows, setRows] = useState(2);
     const [cols, setCols] = useState(2);
+    const [inSettings, setInSettings] = useState(false);
 
     useEffect(() => {
         axios.get("/words.txt").then(response => {
@@ -22,8 +24,10 @@ function App() {
             wordArray = [...wordArray, ...wordArray];
 
             const numWords = wordArray.length;
-            let numCols =
-                localStorage.getItem("columns") || Math.ceil(Math.sqrt(numWords)); //  + 1;
+            let numCols = localStorage.getItem("columns");
+            if (numCols === null || numCols === '0') {
+                numCols = Math.ceil(Math.sqrt(numWords));
+            }
             const numRows = numWords / numCols;
 
             wordArray = arrayShuffle(wordArray);
@@ -43,13 +47,7 @@ function App() {
     }, []);
 
     const playTada = () => {
-        const shouldPlayString = localStorage.getItem("sound");
-        if (
-            shouldPlayString === null ||
-            shouldPlayString === "1" ||
-            shouldPlayString === "true" ||
-            shouldPlayString === "on"
-        ) {
+        if (areSoundsEnabled()) {
             audio.play();
         }
     };
@@ -129,8 +127,27 @@ function App() {
         return layout;
     };
 
+    const handleSettings = () => {
+        setInSettings(true);
+    };
+
+    const handleSettingsClose = () => {
+        setInSettings(false);
+    };
+
+    if (inSettings) {
+        return (
+            <>
+                <SettingsDlg onClose={handleSettingsClose} />
+            </>
+        );
+    }
+
     return (
         <>
+            <div id="setup_button" onClick={handleSettings}>
+                <img src="/img/settings.svg" alt="settings" />
+            </div>
             <div className="container">
                 <h1>Concentration</h1>
                 {getLayout()}
