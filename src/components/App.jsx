@@ -24,11 +24,7 @@ function App() {
             wordArray = [...wordArray, ...wordArray];
 
             const numWords = wordArray.length;
-            let numCols = localStorage.getItem("columns");
-            if (numCols === null || numCols === '0') {
-                numCols = Math.ceil(Math.sqrt(numWords));
-            }
-            const numRows = numWords / numCols;
+            const { numRows, numCols } = calculateRowsAndCols(numWords);
 
             wordArray = arrayShuffle(wordArray);
 
@@ -45,6 +41,29 @@ function App() {
             audio = document.getElementById("tada_audio");
         });
     }, []);
+
+    const calculateRowsAndCols = numWords => {
+        let numCols = localStorage.getItem("columns");
+        if (numCols === null || numCols === "0") {
+            numCols = Math.ceil(Math.sqrt(numWords));
+        }
+        const colsHi = numCols + 5;
+        const colsLo = numCols - 5;
+        while (numCols < colsHi) {
+            if (numWords % numCols === 0) {
+                break;
+            }
+            numCols++;
+        }
+        while (numCols > colsLo && numCols > 0) {
+            if (numWords % numCols === 0) {
+                break;
+            }
+            numCols--;
+        }
+        const numRows = Math.ceil(numWords / numCols);
+        return { numRows, numCols };
+    };
 
     const playTada = () => {
         if (areSoundsEnabled()) {
