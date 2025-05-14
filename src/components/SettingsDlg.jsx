@@ -33,6 +33,15 @@ function SettingsDlg({ onClose }) {
             timeoutEl.value = 0;
             localStorage.setItem("timeout", 2);
         }
+
+        const filenameValue = localStorage.getItem("file");
+        const filenameEl = document.getElementById("filename");
+        if (filenameValue !== null) {
+            filenameEl.value = filenameValue;
+        } else {
+            filenameEl.value = "";
+            localStorage.setItem("file", "words.txt");
+        }
     }, []);
 
     const handleClose = () => {
@@ -51,15 +60,18 @@ function SettingsDlg({ onClose }) {
     };
 
     const handleColumnsChange = e => {
-        console.log("handleColumnsChange");
         const el = document.getElementById("num_columns");
         localStorage.setItem("columns", el.value);
     };
 
     const handleTimeoutChange = e => {
-        console.log("handleTimeoutChange");
         const el = document.getElementById("timeout");
         localStorage.setItem("timeout", el.value);
+    };
+
+    const handleFileChange = e => {
+        const el = document.getElementById("filename");
+        localStorage.setItem("file", el.value);
     };
 
     return (
@@ -101,7 +113,7 @@ function SettingsDlg({ onClose }) {
 
             <div
                 className="dialog-content"
-                id="columns_container"
+                id="timeout_container"
                 onChange={handleTimeoutChange}
                 style={{ marginTop: "10px" }}
             >
@@ -117,6 +129,25 @@ function SettingsDlg({ onClose }) {
                     <label htmlFor="timeout"> Flip timeout</label>
                 </div>
             </div>
+
+
+            <div
+                className="dialog-content"
+                id="filename_container"
+                onChange={handleFileChange}
+                style={{ marginTop: "10px" }}
+            >
+                <div>
+                    <input
+                        type="text"
+                        id="filename"
+                        name="filename"
+                        style={{ color: "#000", backgroundColor: "#f0f0f0" }}
+                    />
+                    <label htmlFor="filename"> File name</label>
+                </div>
+            </div>
+
 
             <div className="button-row">
                 <button id="close_button" className="ui button" onClick={handleClose}>

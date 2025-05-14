@@ -18,7 +18,11 @@ function App() {
     const [inSettings, setInSettings] = useState(false);
 
     useEffect(() => {
-        axios.get("/words.txt").then(response => {
+        let file = localStorage.getItem("file");
+        if (file === null) {
+            file = "/words.txt";
+        }
+        axios.get(file).then(response => {
             let wordArray = response.data.split("\n");
 
             wordArray = [...wordArray, ...wordArray];
@@ -88,6 +92,7 @@ function App() {
         let newTileState = [...tileState];
         newTileState[idx] = !tileState[idx];
         setTileState(newTileState);
+        console.log(newTileState);
         if (newTileState.filter(Boolean).length === 2) {
             const selectedWords = getSelectedWords(newTileState);
             if (selectedWords[0].word === selectedWords[1].word) {
