@@ -18,6 +18,10 @@
     background-color: blue;
 }
 
+.card.solved {
+    background-color: goldenrod;
+}
+
 .card-title {
     font-size: 20px;
 }

@@ -51,7 +51,7 @@ const isTruthy = s => {
 };
 
 const areSoundsEnabled = () => {
-    const s = localStorage.getItem("sound");
+    const s = localStorage.getItem("sounds");
     if (s === null || isTruthy(s)){
         return true;
     }

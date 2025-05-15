@@ -7,18 +7,19 @@ import SettingsDlg from "./SettingsDlg.jsx";
 
 let timer = null;
 let audio = null;
+let file = "";
 const defaultTimeout = 2; // 2 seconds
 
 function App() {
     const [words, setWords] = useState([]);
-    const [solved, setsolved] = useState([]);
+    const [solvedState, setsolvedState] = useState([]);
     const [tileState, setTileState] = useState([]);
     const [rows, setRows] = useState(2);
     const [cols, setCols] = useState(2);
     const [inSettings, setInSettings] = useState(false);
 
     useEffect(() => {
-        let file = localStorage.getItem("file");
+        file = localStorage.getItem("file");
         if (file === null) {
             file = "/words.txt";
         }
@@ -39,7 +40,7 @@ function App() {
             setRows(numRows);
             setCols(numCols);
             setWords(wordArray);
-            setsolved(solvedArray);
+            setsolvedState(solvedArray);
             setTileState(theTileState);
 
             audio = document.getElementById("tada_audio");
@@ -54,7 +55,6 @@ function App() {
                 (!isMac && event.ctrlKey && event.key === ",")
             ) {
                 event.preventDefault();
-                console.log("Open settings");
                 setInSettings(true);
             }
         };
@@ -111,17 +111,16 @@ function App() {
         let newTileState = [...tileState];
         newTileState[idx] = !tileState[idx];
         setTileState(newTileState);
-        console.log(newTileState);
         if (newTileState.filter(Boolean).length === 2) {
             const selectedWords = getSelectedWords(newTileState);
             if (selectedWords[0].word === selectedWords[1].word) {
                 playTada();
-                const solvedArray = [...solved];
+                const solvedArray = [...solvedState];
                 solvedArray[selectedWords[0].index] = true;
                 solvedArray[selectedWords[1].index] = true;
                 newTileState = new Array(words).fill(false);
                 setTileState(newTileState);
-                setsolved(solvedArray);
+                setsolvedState(solvedArray);
                 clearTimeout(timer);
                 timer = null;
                 return;
@@ -148,13 +147,22 @@ function App() {
             for (let j = 0; j < cols && numCards < words.length; j++) {
                 let index = i * cols + j;
                 if (index < words.length) {
-                    const turned = tileState[index] || solved[index];
+                    const turned = tileState[index];
+                    const solved = solvedState[index];
+                    if (turned && !solvedState) {
+                        setTimeout(() => {
+                            let a = [...tileState];
+                            a[index] = false;
+                            setTileState(a);
+                        }, 2000);
+                    }
                     row.push(
                         <Card
                             word={words[index]}
                             key={index}
                             index={index}
                             turned={turned}
+                            solved={solved}
                             onClick={handleClick}
                         />
                     );
@@ -176,7 +184,10 @@ function App() {
 
     const handleSettingsClose = () => {
         setInSettings(false);
-        location.reload();
+        const newFile = localStorage.getItem("file");
+        if (newFile !== file) {
+            location.reload();
+        }
     };
 
     if (inSettings) {
