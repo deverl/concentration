@@ -19,33 +19,43 @@ function App() {
     const [cols, setCols] = useState(2);
     const [inSettings, setInSettings] = useState(false);
 
+    function handleWordsLoaded(newWords) {
+        let wordArray = [...newWords, ...newWords];
+
+        const numWords = wordArray.length;
+        const { numRows, numCols } = calculateRowsAndCols(numWords);
+
+        wordArray = arrayShuffle(wordArray);
+
+        const theTileState = new Array(numWords).fill(false);
+
+        const solvedArray = new Array(numWords).fill(false);
+
+        setRows(numRows);
+        setCols(numCols);
+        setWords(wordArray);
+        setsolvedState(solvedArray);
+        setTileState(theTileState);
+    }
+
     useEffect(() => {
-        file = localStorage.getItem("file");
-        if (file === null) {
-            file = "/words.txt";
+        let words = localStorage.getItem("words");
+        if (words !== null) {
+            handleWordsLoaded(JSON.parse(words));
+        } else {
+            file = localStorage.getItem("file");
+            if (file === null) {
+                file = "/words.txt";
+            }
+            axios.get(file).then(response => {
+                let wordArray = response.data.split("\n");
+                handleWordsLoaded(wordArray);
+            });
         }
-        axios.get(file).then(response => {
-            let wordArray = response.data.split("\n");
+    }, []);
 
-            wordArray = [...wordArray, ...wordArray];
-
-            const numWords = wordArray.length;
-            const { numRows, numCols } = calculateRowsAndCols(numWords);
-
-            wordArray = arrayShuffle(wordArray);
-
-            const theTileState = new Array(numWords).fill(false);
-
-            const solvedArray = new Array(numWords).fill(false);
-
-            setRows(numRows);
-            setCols(numCols);
-            setWords(wordArray);
-            setsolvedState(solvedArray);
-            setTileState(theTileState);
-
-            audio = document.getElementById("tada_audio");
-        });
+    useEffect(() => {
+        audio = document.getElementById("tada_audio");
     }, []);
 
     useEffect(() => {
@@ -53,7 +63,7 @@ function App() {
         if (titlePrefix) {
             setTitle(titlePrefix + " - Concentration");
         }
-   }, []);
+    }, []);
 
     useEffect(() => {
         const handleKeyDown = event => {

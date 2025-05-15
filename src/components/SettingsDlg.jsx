@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { isCheckboxChecked, isTruthy } from "../utils/Utils";
 
 import "./SettingsDlg.css";
+import WordFileUploader from "./WordFileUploader";
 
 function SettingsDlg({ onClose }) {
     useEffect(() => {
@@ -99,6 +100,12 @@ function SettingsDlg({ onClose }) {
         localStorage.setItem("title", el.value);
     };
 
+    const handleWordsLoaded = words => {
+        const arr = JSON.stringify(words);
+        localStorage.setItem("words", arr);
+    }
+
+
     const handleSubmit = e => {
         e.preventDefault();
         e.stopPropagation();
@@ -193,6 +200,18 @@ function SettingsDlg({ onClose }) {
                             style={{ color: "#000", backgroundColor: "#f0f0f0" }}
                         />
                         <label htmlFor="title"> Title</label>
+                    </div>
+                </div>
+
+
+                <div
+                    className="dialog-content"
+                    id="words_container"
+                    onChange={handleTitleChange}
+                    style={{ marginTop: "10px" }}
+                >
+                    <div>
+                        <WordFileUploader onWordsLoaded={handleWordsLoaded}/>
                     </div>
                 </div>
 
