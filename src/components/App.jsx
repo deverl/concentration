@@ -11,6 +11,7 @@ let file = "";
 const defaultTimeout = 2; // 2 seconds
 
 function App() {
+    const [title, setTitle] = useState("Concentration");
     const [words, setWords] = useState([]);
     const [solvedState, setsolvedState] = useState([]);
     const [tileState, setTileState] = useState([]);
@@ -46,6 +47,13 @@ function App() {
             audio = document.getElementById("tada_audio");
         });
     }, []);
+
+    useEffect(() => {
+        const titlePrefix = localStorage.getItem("title");
+        if (titlePrefix) {
+            setTitle(titlePrefix + " - Concentration");
+        }
+   }, []);
 
     useEffect(() => {
         const handleKeyDown = event => {
@@ -204,7 +212,7 @@ function App() {
                 <img src="/img/settings.svg" alt="settings" />
             </div>
             <div className="container">
-                <h1>Concentration</h1>
+                <h1>{title}</h1>
                 {getLayout()}
             </div>
         </>

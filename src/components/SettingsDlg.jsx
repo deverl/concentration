@@ -34,6 +34,15 @@ function SettingsDlg({ onClose }) {
             localStorage.setItem("timeout", 2);
         }
 
+        const titleValue = localStorage.getItem("title");
+        const titleEl = document.getElementById("title");
+        if (titleValue !== null) {
+            titleEl.value = titleValue;
+        } else {
+            titleEl.value = "";
+            localStorage.setItem("title", "");
+        }
+
         const filenameValue = localStorage.getItem("file");
         const filenameEl = document.getElementById("filename");
         if (filenameValue !== null) {
@@ -83,6 +92,11 @@ function SettingsDlg({ onClose }) {
     const handleFileChange = e => {
         const el = document.getElementById("filename");
         localStorage.setItem("file", el.value);
+    };
+
+    const handleTitleChange = e => {
+        const el = document.getElementById("title");
+        localStorage.setItem("title", el.value);
     };
 
     const handleSubmit = e => {
@@ -162,6 +176,23 @@ function SettingsDlg({ onClose }) {
                             style={{ color: "#000", backgroundColor: "#f0f0f0" }}
                         />
                         <label htmlFor="filename"> File name</label>
+                    </div>
+                </div>
+
+                <div
+                    className="dialog-content"
+                    id="title_container"
+                    onChange={handleTitleChange}
+                    style={{ marginTop: "10px" }}
+                >
+                    <div>
+                        <input
+                            type="text"
+                            id="title"
+                            name="title"
+                            style={{ color: "#000", backgroundColor: "#f0f0f0" }}
+                        />
+                        <label htmlFor="title"> Title</label>
                     </div>
                 </div>
 
