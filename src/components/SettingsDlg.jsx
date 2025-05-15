@@ -44,6 +44,17 @@ function SettingsDlg({ onClose }) {
         }
     }, []);
 
+    useEffect(() => {
+        const handleKeyDown = event => {
+            if (event.key === "Escape") {
+                onClose();
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, []);
+
     const handleClose = () => {
         if (onClose) {
             onClose();
@@ -74,87 +85,93 @@ function SettingsDlg({ onClose }) {
         localStorage.setItem("file", el.value);
     };
 
+    const handleSubmit = e => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleClose();
+    };
+
     return (
-        <div className="dialog-container">
-            <div className="dialog-title-row">
-                <div className="dialog-title">Concentration Configuration</div>
-                <div className="dialog-close-x" onClick={handleClose}>
-                    <img src="/img/baseline-close-24px.svg" alt="close" />
+        <form onSubmit={handleSubmit}>
+            <div className="dialog-container">
+                <div className="dialog-title-row">
+                    <div className="dialog-title">Concentration Configuration</div>
+                    <div className="dialog-close-x" onClick={handleClose}>
+                        <img src="/img/baseline-close-24px.svg" alt="close" />
+                    </div>
+                </div>
+                <div
+                    className="dialog-content"
+                    id="play_sounds_container"
+                    onClick={handleSoundsClick}
+                >
+                    <div>
+                        <input type="checkbox" id="play_sounds" name="play_sounds" />
+                        <label htmlFor="play_sounds">Play Sounds</label>
+                    </div>
+                </div>
+                <div
+                    className="dialog-content"
+                    id="columns_container"
+                    onChange={handleColumnsChange}
+                    style={{ marginTop: "10px" }}
+                >
+                    <div>
+                        <input
+                            type="number"
+                            id="num_columns"
+                            name="num_columns"
+                            max={10}
+                            min={0}
+                            style={{ color: "#000", backgroundColor: "#f0f0f0" }}
+                        />
+                        <label htmlFor="num_columns"> Columns</label>
+                    </div>
+                </div>
+
+                <div
+                    className="dialog-content"
+                    id="timeout_container"
+                    onChange={handleTimeoutChange}
+                    style={{ marginTop: "10px" }}
+                >
+                    <div>
+                        <input
+                            type="number"
+                            id="timeout"
+                            name="timeout"
+                            max={10}
+                            min={1}
+                            style={{ color: "#000", backgroundColor: "#f0f0f0" }}
+                        />
+                        <label htmlFor="timeout"> Flip timeout</label>
+                    </div>
+                </div>
+
+                <div
+                    className="dialog-content"
+                    id="filename_container"
+                    onChange={handleFileChange}
+                    style={{ marginTop: "10px" }}
+                >
+                    <div>
+                        <input
+                            type="text"
+                            id="filename"
+                            name="filename"
+                            style={{ color: "#000", backgroundColor: "#f0f0f0" }}
+                        />
+                        <label htmlFor="filename"> File name</label>
+                    </div>
+                </div>
+
+                <div className="button-row">
+                    <button id="close_button" className="ui button" onClick={handleClose}>
+                        Close
+                    </button>
                 </div>
             </div>
-            <div
-                className="dialog-content"
-                id="play_sounds_container"
-                onClick={handleSoundsClick}
-            >
-                <div>
-                    <input type="checkbox" id="play_sounds" name="play_sounds" />
-                    <label htmlFor="play_sounds">Play Sounds</label>
-                </div>
-            </div>
-            <div
-                className="dialog-content"
-                id="columns_container"
-                onChange={handleColumnsChange}
-                style={{ marginTop: "10px" }}
-            >
-                <div>
-                    <input
-                        type="number"
-                        id="num_columns"
-                        name="num_columns"
-                        max={10}
-                        min={0}
-                        style={{ color: "#000", backgroundColor: "#f0f0f0" }}
-                    />
-                    <label htmlFor="num_columns"> Columns</label>
-                </div>
-            </div>
-
-            <div
-                className="dialog-content"
-                id="timeout_container"
-                onChange={handleTimeoutChange}
-                style={{ marginTop: "10px" }}
-            >
-                <div>
-                    <input
-                        type="number"
-                        id="timeout"
-                        name="timeout"
-                        max={10}
-                        min={1}
-                        style={{ color: "#000", backgroundColor: "#f0f0f0" }}
-                    />
-                    <label htmlFor="timeout"> Flip timeout</label>
-                </div>
-            </div>
-
-
-            <div
-                className="dialog-content"
-                id="filename_container"
-                onChange={handleFileChange}
-                style={{ marginTop: "10px" }}
-            >
-                <div>
-                    <input
-                        type="text"
-                        id="filename"
-                        name="filename"
-                        style={{ color: "#000", backgroundColor: "#f0f0f0" }}
-                    />
-                    <label htmlFor="filename"> File name</label>
-                </div>
-            </div>
-
-
-            <div className="button-row">
-                <button id="close_button" className="ui button" onClick={handleClose}>
-                    Close
-                </button>
-            </div>
-        </div>
+        </form>
     );
 }
 

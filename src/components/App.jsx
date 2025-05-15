@@ -46,6 +46,25 @@ function App() {
         });
     }, []);
 
+    useEffect(() => {
+        const handleKeyDown = event => {
+            const isMac = navigator.platform.toUpperCase().includes("MAC");
+            if (
+                (isMac && event.metaKey && event.key === ",") ||
+                (!isMac && event.ctrlKey && event.key === ",")
+            ) {
+                event.preventDefault();
+                console.log("Open settings");
+                setInSettings(true);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, []);
+
     const calculateRowsAndCols = numWords => {
         let numCols = localStorage.getItem("columns");
         if (numCols === null || numCols === "0") {
