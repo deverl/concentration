@@ -157,6 +157,7 @@ function App() {
 
     const handleSettingsClose = () => {
         setInSettings(false);
+        location.reload();
     };
 
     if (inSettings) {
