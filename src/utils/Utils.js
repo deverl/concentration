@@ -52,10 +52,21 @@ const isTruthy = s => {
 
 const areSoundsEnabled = () => {
     const s = localStorage.getItem("sounds");
-    if (s === null || isTruthy(s)){
+    if (s === null || isTruthy(s)) {
         return true;
     }
     return false;
 };
 
-export { arrayShuffle, arrayOR, isCheckboxChecked, isTruthy, areSoundsEnabled };
+function arraysEqual(arr1, arr2) {
+    return arr1.length === arr2.length && arr1.every((val, index) => val === arr2[index]);
+}
+
+export {
+    arrayShuffle,
+    arrayOR,
+    isCheckboxChecked,
+    isTruthy,
+    areSoundsEnabled,
+    arraysEqual,
+};

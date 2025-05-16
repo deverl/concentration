@@ -39,9 +39,20 @@ function App() {
     }
 
     useEffect(() => {
-        let words = localStorage.getItem("words");
-        if (words !== null) {
-            handleWordsLoaded(JSON.parse(words));
+        let wordsString = localStorage.getItem("words");
+        let wordsArray = [];
+        if (wordsString) {
+            try {
+                wordsArray = JSON.parse(wordsString);
+            }
+            catch (err) {
+                console.error("Invalid words in localStorage", err);
+                wordsArray = [];
+            }
+        }
+
+        if (wordsArray.length > 0) {
+            handleWordsLoaded(wordsArray);
         } else {
             file = localStorage.getItem("file");
             if (file === null) {
@@ -200,10 +211,9 @@ function App() {
         setInSettings(true);
     };
 
-    const handleSettingsClose = () => {
+    const handleSettingsClose = reload => {
         setInSettings(false);
-        const newFile = localStorage.getItem("file");
-        if (newFile !== file) {
+        if (reload) {
             location.reload();
         }
     };

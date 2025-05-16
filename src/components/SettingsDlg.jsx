@@ -31,7 +31,7 @@ function SettingsDlg({ onClose }) {
     useEffect(() => {
         const handleKeyDown = event => {
             if (event.key === "Escape") {
-                onClose();
+                onClose(false);
             }
         };
         window.addEventListener("keydown", handleKeyDown);
@@ -39,13 +39,28 @@ function SettingsDlg({ onClose }) {
     }, [onClose]);
 
     const handleSave = () => {
+        let reload = false;
+
+        const checkAndSet = (key, newValue) => {
+            const currentValue = localStorage.getItem(key);
+            if (currentValue !== newValue) {
+                reload = true;
+                localStorage.setItem(key, newValue);
+            }
+        };
+
+        // We don't want to set reload if sounds has changed.
+        // checkAndSet("sounds", playSounds ? "1" : "0");
         localStorage.setItem("sounds", playSounds ? "1" : "0");
-        localStorage.setItem("columns", columns.toString());
-        localStorage.setItem("timeout", timeout.toString());
-        localStorage.setItem("file", filename);
-        localStorage.setItem("title", title);
-        localStorage.setItem("words", JSON.stringify(wordList));
-        if (onClose) onClose();
+        checkAndSet("columns", columns.toString());
+        checkAndSet("timeout", timeout.toString());
+        checkAndSet("file", filename);
+        checkAndSet("title", title);
+        checkAndSet("words", JSON.stringify(wordList));
+
+        if (onClose) {
+            onClose(reload);
+        }
     };
 
     const handleWordsLoaded = words => {
@@ -57,7 +72,7 @@ function SettingsDlg({ onClose }) {
     };
 
     return (
-        <form onSubmit={(e) => e.preventDefault()}>
+        <form onSubmit={e => e.preventDefault()}>
             <div className="dialog-container">
                 <div className="dialog-title-row">
                     <div className="dialog-title">Concentration Configuration</div>
@@ -138,15 +153,17 @@ function SettingsDlg({ onClose }) {
                 <div className="dialog-content" style={{ marginTop: "10px" }}>
                     {wordList.length > 0 && (
                         <>
-                            <div style={{
-                                marginTop: "10px",
-                                maxHeight: "80px",
-                                overflowY: "auto",
-                                backgroundColor: "#f9f9f9",
-                                border: "1px solid #ccc",
-                                padding: "5px",
-                                fontFamily: "monospace"
-                            }}>
+                            <div
+                                style={{
+                                    marginTop: "10px",
+                                    maxHeight: "80px",
+                                    overflowY: "auto",
+                                    backgroundColor: "#f9f9f9",
+                                    border: "1px solid #ccc",
+                                    padding: "5px",
+                                    fontFamily: "monospace",
+                                }}
+                            >
                                 {wordList.map((word, index) => (
                                     <div key={index}>{word}</div>
                                 ))}
@@ -162,7 +179,7 @@ function SettingsDlg({ onClose }) {
                                     border: "none",
                                     padding: "6px 12px",
                                     borderRadius: "4px",
-                                    cursor: "pointer"
+                                    cursor: "pointer",
                                 }}
                                 onClick={handleClearWords}
                             >
