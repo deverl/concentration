@@ -1,40 +1,23 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 
-import { isCheckboxChecked, isTruthy } from "../utils/Utils";
-
 import "./SettingsDlg.css";
 import WordFileUploader from "./WordFileUploader";
 
 function SettingsDlg({ onClose }) {
+    const [playSounds, setPlaySounds] = useState(false);
+    const [columns, setColumns] = useState(0);
+    const [timeout, setTimeoutValue] = useState(2);
+    const [filename, setFilename] = useState("words.txt");
+    const [title, setTitle] = useState("");
     const [wordList, setWordList] = useState([]);
 
     useEffect(() => {
-        const soundsValue = localStorage.getItem("sounds");
-        const soundsEl = document.getElementById("play_sounds");
-        if (isTruthy(soundsValue)) {
-            soundsEl.checked = true;
-        } else {
-            soundsEl.checked = false;
-        }
-
-        const columnsValue = localStorage.getItem("columns");
-        const columnsEl = document.getElementById("num_columns");
-        columnsEl.value = columnsValue !== null ? columnsValue : 0;
-
-        const timeoutValue = localStorage.getItem("timeout");
-        const timeoutEl = document.getElementById("timeout");
-        timeoutEl.value = timeoutValue !== null ? timeoutValue : 2;
-
-        const titleValue = localStorage.getItem("title");
-        const titleEl = document.getElementById("title");
-        titleEl.value = titleValue !== null ? titleValue : "";
-
-        const filenameValue = localStorage.getItem("file");
-        const filenameEl = document.getElementById("filename");
-        filenameEl.value = filenameValue !== null ? filenameValue : "words.txt";
-
-        // Load words
+        setPlaySounds(localStorage.getItem("sounds") === "1");
+        setColumns(parseInt(localStorage.getItem("columns") || "0", 10));
+        setTimeoutValue(parseInt(localStorage.getItem("timeout") || "2", 10));
+        setFilename(localStorage.getItem("file") || "words.txt");
+        setTitle(localStorage.getItem("title") || "");
         const wordsValue = localStorage.getItem("words");
         if (wordsValue) {
             try {
@@ -53,103 +36,106 @@ function SettingsDlg({ onClose }) {
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, []);
+    }, [onClose]);
 
-    const handleClose = () => {
+    const handleSave = () => {
+        localStorage.setItem("sounds", playSounds ? "1" : "0");
+        localStorage.setItem("columns", columns.toString());
+        localStorage.setItem("timeout", timeout.toString());
+        localStorage.setItem("file", filename);
+        localStorage.setItem("title", title);
+        localStorage.setItem("words", JSON.stringify(wordList));
         if (onClose) onClose();
     };
 
-    const handleSoundsClick = () => {
-        const isChecked = isCheckboxChecked("play_sounds");
-        localStorage.setItem("sounds", isChecked ? "1" : "0");
-    };
-
-    const handleColumnsChange = () => {
-        const el = document.getElementById("num_columns");
-        localStorage.setItem("columns", el.value);
-    };
-
-    const handleTimeoutChange = () => {
-        const el = document.getElementById("timeout");
-        localStorage.setItem("timeout", el.value);
-    };
-
-    const handleFileChange = () => {
-        const el = document.getElementById("filename");
-        localStorage.setItem("file", el.value);
-    };
-
-    const handleTitleChange = () => {
-        const el = document.getElementById("title");
-        localStorage.setItem("title", el.value);
-    };
-
     const handleWordsLoaded = words => {
-        localStorage.setItem("words", JSON.stringify(words));
         setWordList(words);
     };
 
     const handleClearWords = () => {
-        localStorage.removeItem("words");
         setWordList([]);
     };
 
-    const handleSubmit = e => {
-        e.preventDefault();
-        e.stopPropagation();
-        handleClose();
-    };
-
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={(e) => e.preventDefault()}>
             <div className="dialog-container">
                 <div className="dialog-title-row">
                     <div className="dialog-title">Concentration Configuration</div>
-                    <div className="dialog-close-x" onClick={handleClose}>
-                        <img src="/img/baseline-close-24px.svg" alt="close" />
-                    </div>
                 </div>
 
-                <div className="dialog-content" id="play_sounds_container" onClick={handleSoundsClick}>
+                <div className="dialog-content" style={{ marginTop: "10px" }}>
                     <div>
-                        <input type="checkbox" id="play_sounds" name="play_sounds" />
+                        <input
+                            type="checkbox"
+                            id="play_sounds"
+                            checked={playSounds}
+                            onChange={e => setPlaySounds(e.target.checked)}
+                        />
                         <label htmlFor="play_sounds">Play Sounds</label>
                     </div>
                 </div>
 
-                <div className="dialog-content" id="columns_container" onChange={handleColumnsChange} style={{ marginTop: "10px" }}>
+                <div className="dialog-content" style={{ marginTop: "10px" }}>
                     <div>
-                        <input type="number" id="num_columns" name="num_columns" max={10} min={0} style={{ color: "#000", backgroundColor: "#f0f0f0" }} />
+                        <input
+                            type="number"
+                            id="num_columns"
+                            value={columns}
+                            onChange={e => setColumns(Number(e.target.value))}
+                            max={10}
+                            min={0}
+                            style={{ color: "#000", backgroundColor: "#f0f0f0" }}
+                        />
                         <label htmlFor="num_columns"> Columns</label>
                     </div>
                 </div>
 
-                <div className="dialog-content" id="timeout_container" onChange={handleTimeoutChange} style={{ marginTop: "10px" }}>
+                <div className="dialog-content" style={{ marginTop: "10px" }}>
                     <div>
-                        <input type="number" id="timeout" name="timeout" max={10} min={1} style={{ color: "#000", backgroundColor: "#f0f0f0" }} />
+                        <input
+                            type="number"
+                            id="timeout"
+                            value={timeout}
+                            onChange={e => setTimeoutValue(Number(e.target.value))}
+                            max={10}
+                            min={1}
+                            style={{ color: "#000", backgroundColor: "#f0f0f0" }}
+                        />
                         <label htmlFor="timeout"> Flip timeout</label>
                     </div>
                 </div>
 
-                <div className="dialog-content" id="filename_container" onChange={handleFileChange} style={{ marginTop: "10px" }}>
+                <div className="dialog-content" style={{ marginTop: "10px" }}>
                     <div>
-                        <input type="text" id="filename" name="filename" style={{ color: "#000", backgroundColor: "#f0f0f0" }} />
+                        <input
+                            type="text"
+                            id="filename"
+                            value={filename}
+                            onChange={e => setFilename(e.target.value)}
+                            style={{ color: "#000", backgroundColor: "#f0f0f0" }}
+                        />
                         <label htmlFor="filename"> File name</label>
                     </div>
                 </div>
 
-                <div className="dialog-content" id="title_container" onChange={handleTitleChange} style={{ marginTop: "10px" }}>
+                <div className="dialog-content" style={{ marginTop: "10px" }}>
                     <div>
-                        <input type="text" id="title" name="title" style={{ color: "#000", backgroundColor: "#f0f0f0" }} />
+                        <input
+                            type="text"
+                            id="title"
+                            value={title}
+                            onChange={e => setTitle(e.target.value)}
+                            style={{ color: "#000", backgroundColor: "#f0f0f0" }}
+                        />
                         <label htmlFor="title"> Title</label>
                     </div>
                 </div>
 
-                <div className="dialog-content" id="upload_container" style={{ marginTop: "10px" }}>
+                <div className="dialog-content" style={{ marginTop: "10px" }}>
                     <WordFileUploader onWordsLoaded={handleWordsLoaded} />
                 </div>
 
-                <div className="dialog-content" id="words_container" style={{ marginTop: "10px" }}>
+                <div className="dialog-content" style={{ marginTop: "10px" }}>
                     {wordList.length > 0 && (
                         <>
                             <div style={{
@@ -187,8 +173,13 @@ function SettingsDlg({ onClose }) {
                 </div>
 
                 <div className="button-row">
-                    <button id="close_button" className="ui button" onClick={handleClose}>
-                        Close
+                    <button
+                        type="button"
+                        className="ui button"
+                        style={{ backgroundColor: "#5cb85c", color: "#fff" }}
+                        onClick={handleSave}
+                    >
+                        Save
                     </button>
                 </div>
             </div>
