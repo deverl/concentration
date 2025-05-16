@@ -1,233 +1,191 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { arrayShuffle, areSoundsEnabled } from "../utils/Utils.js";
+import { arrayShuffle, areSoundsEnabled, getLocalStorage } from "../utils/Utils.js";
 import "./App.css";
 import Card from "./Card.jsx";
 import SettingsDlg from "./SettingsDlg.jsx";
 
-let timer = null;
-let audio = null;
-let file = "";
 const defaultTimeout = 2; // 2 seconds
+
+const calculateRowsAndCols = numWords => {
+    let numCols = parseInt(getLocalStorage("columns", "0"), 10);
+    if (numCols === 0) {
+        numCols = Math.ceil(Math.sqrt(numWords));
+    }
+
+    const maxCols = numCols + 5;
+    const minCols = Math.max(numCols - 5, 1);
+
+    for (let i = numCols; i <= maxCols; i++) {
+        if (numWords % i === 0) {
+            numCols = i;
+            break;
+        }
+    }
+
+    for (let i = numCols; i >= minCols; i--) {
+        if (numWords % i === 0) {
+            numCols = i;
+            break;
+        }
+    }
+
+    const numRows = Math.ceil(numWords / numCols);
+    return { numRows, numCols };
+};
 
 function App() {
     const [title, setTitle] = useState("Concentration");
     const [words, setWords] = useState([]);
-    const [solvedState, setsolvedState] = useState([]);
+    const [solvedTiles, setSolvedTiles] = useState([]);
     const [tileState, setTileState] = useState([]);
     const [rows, setRows] = useState(2);
     const [cols, setCols] = useState(2);
     const [inSettings, setInSettings] = useState(false);
 
-    function handleWordsLoaded(newWords) {
-        let wordArray = [...newWords, ...newWords];
-
-        const numWords = wordArray.length;
-        const { numRows, numCols } = calculateRowsAndCols(numWords);
-
-        wordArray = arrayShuffle(wordArray);
-
-        const theTileState = new Array(numWords).fill(false);
-
-        const solvedArray = new Array(numWords).fill(false);
-
-        setRows(numRows);
-        setCols(numCols);
-        setWords(wordArray);
-        setsolvedState(solvedArray);
-        setTileState(theTileState);
-    }
+    const timerRef = useRef(null);
+    const audioRef = useRef(null);
 
     useEffect(() => {
-        let wordsString = localStorage.getItem("words");
-        let wordsArray = [];
+        const storedTitle = getLocalStorage("title");
+        if (storedTitle) {
+            setTitle(`${storedTitle} - Concentration`);
+        }
+    }, []);
+
+    useEffect(() => {
+        let wordArray = [];
+        const wordsString = getLocalStorage("words");
         if (wordsString) {
             try {
-                wordsArray = JSON.parse(wordsString);
-            }
-            catch (err) {
+                wordArray = JSON.parse(wordsString);
+            } catch (err) {
                 console.error("Invalid words in localStorage", err);
-                wordsArray = [];
             }
         }
 
-        if (wordsArray.length > 0) {
-            handleWordsLoaded(wordsArray);
+        if (wordArray.length > 0) {
+            loadWords(wordArray);
         } else {
-            file = localStorage.getItem("file");
-            if (file === null) {
-                file = "/words.txt";
-            }
+            const file = getLocalStorage("file", "/words.txt");
             axios.get(file).then(response => {
-                let wordArray = response.data.split("\n");
-                handleWordsLoaded(wordArray);
+                const list = response.data.split("\n").filter(Boolean);
+                loadWords(list);
             });
         }
     }, []);
 
-    useEffect(() => {
-        audio = document.getElementById("tada_audio");
-    }, []);
+    const loadWords = wordList => {
+        let wordArray = [...wordList, ...wordList];
+        wordArray = arrayShuffle(wordArray);
 
-    useEffect(() => {
-        const titlePrefix = localStorage.getItem("title");
-        if (titlePrefix) {
-            setTitle(titlePrefix + " - Concentration");
-        }
-    }, []);
+        const { numRows, numCols } = calculateRowsAndCols(wordArray.length);
+
+        setRows(numRows);
+        setCols(numCols);
+        setWords(wordArray);
+        setSolvedTiles(new Array(wordArray.length).fill(false));
+        setTileState(new Array(wordArray.length).fill(false));
+    };
 
     useEffect(() => {
         const handleKeyDown = event => {
             const isMac = navigator.platform.toUpperCase().includes("MAC");
-            if (
+            const openSettings =
                 (isMac && event.metaKey && event.key === ",") ||
-                (!isMac && event.ctrlKey && event.key === ",")
-            ) {
+                (!isMac && event.ctrlKey && event.key === ",");
+
+            if (openSettings) {
                 event.preventDefault();
                 setInSettings(true);
             }
         };
-        window.addEventListener("keydown", handleKeyDown);
 
-        return () => {
-            window.removeEventListener("keydown", handleKeyDown);
-        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-    const calculateRowsAndCols = numWords => {
-        let numCols = localStorage.getItem("columns");
-        if (numCols === null || numCols === "0") {
-            numCols = Math.ceil(Math.sqrt(numWords));
-        }
-        const colsHi = numCols + 5;
-        const colsLo = numCols - 5;
-        while (numCols < colsHi) {
-            if (numWords % numCols === 0) {
-                break;
-            }
-            numCols++;
-        }
-        while (numCols > colsLo && numCols > 0) {
-            if (numWords % numCols === 0) {
-                break;
-            }
-            numCols--;
-        }
-        const numRows = Math.ceil(numWords / numCols);
-        return { numRows, numCols };
-    };
-
     const playTada = () => {
-        if (areSoundsEnabled()) {
-            audio.play();
+        if (areSoundsEnabled() && audioRef.current) {
+            audioRef.current.play();
         }
     };
 
     const getSelectedWords = newTileState => {
-        const selected = [];
-        newTileState.forEach((value, index) => {
-            if (value) {
-                selected.push({ index, word: words[index] });
-            }
-        });
-        return selected;
+        return newTileState
+            .map((turned, index) => (turned ? { index, word: words[index] } : null))
+            .filter(Boolean);
     };
 
     const handleClick = idx => {
-        if (timer) {
-            return;
-        }
-        let newTileState = [...tileState];
-        newTileState[idx] = !tileState[idx];
+        if (timerRef.current || tileState[idx] || solvedTiles[idx]) return;
+
+        const newTileState = [...tileState];
+        newTileState[idx] = true;
         setTileState(newTileState);
-        if (newTileState.filter(Boolean).length === 2) {
-            const selectedWords = getSelectedWords(newTileState);
-            if (selectedWords[0].word === selectedWords[1].word) {
+
+        const selected = getSelectedWords(newTileState);
+        if (selected.length === 2) {
+            const [first, second] = selected;
+            if (first.word === second.word) {
                 playTada();
-                const solvedArray = [...solvedState];
-                solvedArray[selectedWords[0].index] = true;
-                solvedArray[selectedWords[1].index] = true;
-                newTileState = new Array(words).fill(false);
-                setTileState(newTileState);
-                setsolvedState(solvedArray);
-                clearTimeout(timer);
-                timer = null;
-                return;
+                const updatedSolved = [...solvedTiles];
+                updatedSolved[first.index] = true;
+                updatedSolved[second.index] = true;
+                setSolvedTiles(updatedSolved);
+
+                setTimeout(() => {
+                    const cleared = new Array(words.length).fill(false);
+                    setTileState(cleared);
+                }, 500); // Quick flip back for matched
+            } else {
+                const timeout = parseFloat(getLocalStorage("timeout", defaultTimeout));
+                timerRef.current = setTimeout(() => {
+                    const cleared = new Array(words.length).fill(false);
+                    setTileState(cleared);
+                    timerRef.current = null;
+                }, timeout * 1000);
             }
-
-            let timeout = localStorage.getItem("timeout") || defaultTimeout;
-
-            timer = setTimeout(() => {
-                let a = new Array(tileState.length).fill(false);
-                setTileState(a);
-                timer = null;
-            }, timeout * 1000);
         }
+    };
+
+    const handleSettings = () => setInSettings(true);
+    const handleSettingsClose = reload => {
+        setInSettings(false);
+        if (reload) location.reload();
     };
 
     const getLayout = () => {
-        if (words.length === 0) {
-            return <h1>Loading...</h1>;
-        }
-        let numCards = 0;
-        let layout = [];
-        for (let i = 0; i < rows; i++) {
-            let row = [];
-            for (let j = 0; j < cols && numCards < words.length; j++) {
-                let index = i * cols + j;
-                if (index < words.length) {
-                    const turned = tileState[index];
-                    const solved = solvedState[index];
-                    if (turned && !solvedState) {
-                        setTimeout(() => {
-                            let a = [...tileState];
-                            a[index] = false;
-                            setTileState(a);
-                        }, 2000);
-                    }
-                    row.push(
+        if (words.length === 0) return <h1>Loading...</h1>;
+
+        return Array.from({ length: rows }).map((_, rowIdx) => (
+            <div key={rowIdx} className="row">
+                {Array.from({ length: cols }).map((_, colIdx) => {
+                    const index = rowIdx * cols + colIdx;
+                    if (index >= words.length) return null;
+
+                    return (
                         <Card
-                            word={words[index]}
                             key={index}
+                            word={words[index]}
                             index={index}
-                            turned={turned}
-                            solved={solved}
+                            turned={tileState[index]}
+                            solved={solvedTiles[index]}
                             onClick={handleClick}
                         />
                     );
-                    numCards++;
-                }
-            }
-            layout.push(
-                <div key={i} className="row">
-                    {row}
-                </div>
-            );
-        }
-        return layout;
-    };
-
-    const handleSettings = () => {
-        setInSettings(true);
-    };
-
-    const handleSettingsClose = reload => {
-        setInSettings(false);
-        if (reload) {
-            location.reload();
-        }
+                })}
+            </div>
+        ));
     };
 
     if (inSettings) {
-        return (
-            <>
-                <SettingsDlg onClose={handleSettingsClose} />
-            </>
-        );
+        return <SettingsDlg onClose={handleSettingsClose} />;
     }
 
     return (
         <>
+            <audio ref={audioRef} id="tada_audio" src="/tada.mp3" preload="auto" />
             <div id="setup_button" onClick={handleSettings}>
                 <img src="/img/settings.svg" alt="settings" />
             </div>

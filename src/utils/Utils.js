@@ -62,6 +62,11 @@ function arraysEqual(arr1, arr2) {
     return arr1.length === arr2.length && arr1.every((val, index) => val === arr2[index]);
 }
 
+const getLocalStorage = (key, fallback = null) => {
+    const value = localStorage.getItem(key);
+    return value !== null ? value : fallback;
+};
+
 export {
     arrayShuffle,
     arrayOR,
@@ -69,4 +74,5 @@ export {
     isTruthy,
     areSoundsEnabled,
     arraysEqual,
+    getLocalStorage,
 };
